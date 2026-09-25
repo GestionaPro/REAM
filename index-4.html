@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>REAM - Sistema de Inventario</title>
+<meta name="theme-color" content="#0f172a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="icon" href="https://lh3.googleusercontent.com/d/1iILWOcPa4pYOmEkTj-iR0iJchedSJ9MS">
+<link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1iILWOcPa4pYOmEkTj-iR0iJchedSJ9MS">
+<!-- Redirección automática a la app real (Apps Script). El meta-refresh es el
+     respaldo si por algún motivo el navegador bloquea el redirect por JS. -->
+<meta http-equiv="refresh" content="1; url=https://script.google.com/macros/s/AKfycbxlOk8R-t_5M5_o7OBnJ5HwIN8jWspacxzSi5wGN5F_ud-3emPcGmL8u_j_jreJnkfO4A/exec">
+<style>
+  :root { --azul:#2563eb; --cian:#06b6d4; }
+  * { box-sizing: border-box; }
+  html, body {
+    height: 100%; margin: 0; padding: 0;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: linear-gradient(160deg, #0f172a, #1e3a5f);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .caja {
+    text-align: center; color: #fff;
+    padding: 0 24px;
+  }
+  .logo {
+    width: 96px; height: 96px; margin: 0 auto 18px;
+    border-radius: 24px; overflow: hidden;
+    box-shadow: 0 12px 30px rgba(37,99,235,.45);
+    background: linear-gradient(135deg, var(--azul), var(--cian));
+  }
+  .logo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  h1 { font-size: 1.3rem; font-weight: 800; margin: 0 0 4px; }
+  p { color: #94a3b8; font-size: 0.88rem; margin: 0 0 22px; }
+  .spinner {
+    width: 30px; height: 30px; margin: 0 auto 20px;
+    border: 3px solid rgba(255,255,255,.2);
+    border-top-color: var(--cian);
+    border-radius: 50%;
+    animation: girar 0.8s linear infinite;
+  }
+  @keyframes girar { to { transform: rotate(360deg); } }
+  a.abrir {
+    display: inline-block; margin-top: 6px;
+    background: #fff; color: #1e293b; font-weight: 700;
+    text-decoration: none; padding: 10px 22px; border-radius: 10px;
+    font-size: 0.9rem;
+  }
+</style>
+</head>
+<body>
+  <div class="caja">
+    <div class="logo"><img src="https://lh3.googleusercontent.com/d/1iILWOcPa4pYOmEkTj-iR0iJchedSJ9MS" alt="REAM"></div>
+    <div class="spinner"></div>
+    <h1>REAM</h1>
+    <p>Abriendo el sistema de inventario…</p>
+    <a class="abrir" id="btnAbrir" href="https://script.google.com/macros/s/AKfycbxlOk8R-t_5M5_o7OBnJ5HwIN8jWspacxzSi5wGN5F_ud-3emPcGmL8u_j_jreJnkfO4A/exec">Abrir REAM</a>
+  </div>
+  <script>
+    // Redirección inmediata por JS (más rápida que el meta-refresh de arriba,
+    // que solo actúa como respaldo). El botón "Abrir REAM" queda visible por
+    // si el navegador bloquea la redirección automática (pasa en algunos
+    // navegadores dentro de apps como Instagram/WhatsApp).
+    window.location.replace(document.getElementById('btnAbrir').href);
+  </script>
+</body>
+</html>
