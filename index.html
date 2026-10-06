@@ -656,7 +656,12 @@
 
     function hacerLogin() {
       var pin = document.getElementById('pinInput').value;
-      google.script.run.withFailureHandler(mostrarErrorSistema).withSuccessHandler(function (res) {
+      var btnIng = document.querySelector('.login-box .btn-primary');
+      if (btnIng) { if (btnIng.disabled) return; btnIng.disabled = true; btnIng.innerText = 'Ingresando…'; }
+      document.getElementById('loginError').innerText = '';
+      var finLogin = function () { if (btnIng) { btnIng.disabled = false; btnIng.innerText = 'Ingresar'; } };
+      google.script.run.withFailureHandler(function (e) { finLogin(); mostrarErrorSistema(e); }).withSuccessHandler(function (res) {
+        finLogin();
         if (res.ok) {
           ESTADO.usuario = res.nombre;
           ESTADO.rol = res.rol;
