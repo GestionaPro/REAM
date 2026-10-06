@@ -29,7 +29,7 @@
               else if (fail) fail({ message: (d && d.error) || 'Error del servidor' });
               else console.error(d && d.error);
             }).catch(function (e) {
-              if (fail) fail({ message: 'No hay conexión con el servidor (' + e.message + '). Revisa tu internet e intenta de nuevo.' });
+              if (fail) fail({ message: 'No se pudo contactar al servidor (' + e.message + '). Revisa tu internet. Si acabas de cambiar el código, en Apps Script haz Implementar → Administrar implementaciones → Editar → Nueva versión.' });
               else console.error(e);
             });
           };
