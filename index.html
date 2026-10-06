@@ -607,6 +607,7 @@
     // Utilidad/Configuración) siempre vienen en false para el Almacenista,
     // sin importar la tabla - eso lo decide el servidor, no esta función.
     function aplicarPermisosMenu() {
+      if (ESTADO.esAdmin) { document.querySelectorAll('[onclick^="irAModulo("]').forEach(function (b) { b.style.display = ''; }); return; } // Admin ve todo
       google.script.run.withFailureHandler(mostrarErrorSistema).withSuccessHandler(function (permisos) {
         Object.keys(permisos).forEach(function (modulo) {
           var btn = document.querySelector('[onclick="irAModulo(\'' + modulo + '\')"]');
