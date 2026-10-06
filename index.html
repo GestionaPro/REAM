@@ -2,6 +2,7 @@
 <html>
 <head>
   <base target="_top">
+  <link rel="preload" as="image" href="https://lh3.googleusercontent.com/d/1Ekz5Hn5DulJ7vloRB4mow80RDIrTfigF=s400">
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>REAM - Inventario</title>
@@ -64,6 +65,7 @@
     .login-box #pinInput { font-size:1.7rem; letter-spacing:.35em; padding:.7rem; }
     .login-box .btn { font-size:1.2rem; padding:.75rem; border-radius:12px; }
     /* mientras se sabe si hay logo propio, no mostrar el icono por defecto (evita el parpadeo) */
+    .login-logo.login-logo-fijo { background:#fff url('https://lh3.googleusercontent.com/d/1Ekz5Hn5DulJ7vloRB4mow80RDIrTfigF=s400') center / contain no-repeat; box-shadow:0 8px 20px rgba(0,0,0,.25); }
     .logo-pendiente { color:transparent !important; }
     @media (max-height:560px) {
       .login-box { padding:1rem 1.4rem; }
@@ -148,7 +150,7 @@
 
   <div id="loginOverlay">
     <div class="login-box">
-      <div class="login-logo logo-pendiente">🔧</div>
+      <div class="login-logo login-logo-fijo"></div>
       <h4>REAM Repuestos</h4>
       <div class="subtitulo">Sistema de Inventario y Gestión</div>
       <input type="password" inputmode="numeric" id="pinInput" class="form-control text-center mb-3" placeholder="PIN" maxlength="10" onkeydown="if(event.key==='Enter')hacerLogin()">
@@ -629,7 +631,7 @@
       if (!url) { logoListo_(); return; }
       var img = new Image();
       img.onload = function () {
-        document.querySelectorAll('.login-logo, .mini-logo').forEach(function (el) {
+        document.querySelectorAll('.mini-logo').forEach(function (el) {
           el.innerHTML = '';
           el.style.background = 'url("' + url + '") center / cover no-repeat';
         });
