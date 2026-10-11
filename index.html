@@ -66,6 +66,11 @@
     .login-box .btn { font-size:1.2rem; padding:.75rem; border-radius:12px; }
     /* mientras se sabe si hay logo propio, no mostrar el icono por defecto (evita el parpadeo) */
     .login-logo.login-logo-fijo { background:#fff url('https://lh3.googleusercontent.com/d/1Ekz5Hn5DulJ7vloRB4mow80RDIrTfigF=s400') center / contain no-repeat; box-shadow:0 8px 20px rgba(0,0,0,.25); }
+    .ream-modal { position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:2000; display:none; align-items:center; justify-content:center; padding:12px; }
+    .ream-modal.abierto { display:flex; }
+    .ream-modal .caja { background:#fff; color:#111; border-radius:14px; width:min(560px,100%); max-height:92vh; overflow:auto; padding:16px; }
+    .ream-modal .caja.ancha { width:min(900px,100%); }
+    .ream-modal label { font-size:.8rem; font-weight:600; margin-bottom:2px; }
     .logo-pendiente { color:transparent !important; }
     @media (max-height:560px) {
       .login-box { padding:1rem 1.4rem; }
@@ -268,7 +273,7 @@
 
       <!-- GASTOS -->
       <div id="tab-gastos" class="tab-pane-custom">
-        <div class="modulo-header"><h5>🧾 Gastos (solo Admin)</h5></div>
+        <div class="modulo-header"><h5>🧾 Gastos (solo Admin)</h5> <button class="btn btn-outline-secondary btn-sm solo-admin-ui" onclick="verAuditoriaUI('Gastos')">📜 Historial de cambios</button></div>
         <div class="card p-3 mb-3">
           <h6>Registrar Gasto</h6>
           <div class="row g-2">
@@ -280,7 +285,7 @@
             <div class="col-md-1"><button class="btn btn-primary w-100" onclick="registrarGastoUI()">Guardar</button></div>
           </div>
         </div>
-        <table class="table table-sm"><thead><tr><th>Fecha</th><th>Categoría</th><th>Concepto</th><th>Valor</th><th>Responsable</th></tr></thead>
+        <table class="table table-sm"><thead><tr><th>Fecha</th><th>Categoría</th><th>Concepto</th><th>Valor</th><th>Responsable</th><th></th></tr></thead>
         <tbody id="tablaGastos"></tbody></table>
       </div>
 
@@ -335,7 +340,7 @@
 
       <!-- ENTRADAS / COMPRAS -->
       <div id="tab-entradas" class="tab-pane-custom">
-        <div class="modulo-header"><h5>🛒 Compras</h5></div>
+        <div class="modulo-header"><h5>🛒 Compras</h5> <button class="btn btn-outline-secondary btn-sm solo-admin-ui" onclick="verAuditoriaUI('Compras')">📜 Historial de cambios</button></div>
         <div class="card p-3 mb-3">
           <h6>Registrar Compra</h6>
           <div class="row g-2">
@@ -357,7 +362,7 @@
             <div class="col-md-3"><input type="date" id="entFiltroHasta" class="form-control"></div>
             <div class="col-md-3"><button class="btn btn-outline-primary w-100" onclick="cargarMovimientos('entrada',1)">Filtrar</button></div>
           </div>
-          <table class="table table-sm"><thead><tr><th>ID</th><th>Fecha</th><th>Proveedor</th><th>Código</th><th>Descripción</th><th>Cant.</th><th>Precio</th></tr></thead>
+          <table class="table table-sm"><thead><tr><th>ID</th><th>Fecha</th><th>Proveedor</th><th>Código</th><th>Descripción</th><th>Cant.</th><th>Precio</th><th></th></tr></thead>
           <tbody id="tablaEntradas"></tbody></table>
           <div id="paginacionEntradas" class="d-flex justify-content-between"></div>
         </div>
@@ -365,7 +370,7 @@
 
       <!-- SALIDAS / VENTAS -->
       <div id="tab-salidas" class="tab-pane-custom">
-        <div class="modulo-header"><h5>🧾 Ventas</h5></div>
+        <div class="modulo-header"><h5>🧾 Ventas</h5> <button class="btn btn-outline-secondary btn-sm solo-admin-ui" onclick="verAuditoriaUI('Ventas')">📜 Historial de cambios</button></div>
         <div class="card p-3 mb-3">
           <h6>Registrar Venta</h6>
           <div class="row g-2">
@@ -395,7 +400,7 @@
             <div class="col-md-3"><input type="date" id="salFiltroHasta" class="form-control"></div>
             <div class="col-md-3"><button class="btn btn-outline-primary w-100" onclick="cargarMovimientos('salida',1)">Filtrar</button></div>
           </div>
-          <table class="table table-sm"><thead><tr><th>ID</th><th>Fecha</th><th>Código</th><th>Descripción</th><th>Cant.</th><th>Precio</th></tr></thead>
+          <table class="table table-sm"><thead><tr><th>ID</th><th>Fecha</th><th>Código</th><th>Descripción</th><th>Cant.</th><th>Precio</th><th>Pagado</th><th></th></tr></thead>
           <tbody id="tablaSalidas"></tbody></table>
           <div id="paginacionSalidas" class="d-flex justify-content-between"></div>
         </div>
@@ -674,6 +679,7 @@
           document.getElementById('appContainer').style.display = 'block';
           document.getElementById('usuarioActivo').innerText = res.nombre + ' (' + res.rol + ')';
           if (!ESTADO.esAdmin) {
+            document.querySelectorAll('.solo-admin-ui').forEach(function (el) { el.style.display = 'none'; });
             document.getElementById('thCosto').style.display = 'none';
             document.getElementById('btnNuevoProducto').style.display = 'none';
           }
@@ -861,6 +867,105 @@
       }).registrarSalida(datos, ESTADO.token);
     }
 
+
+    /* ===================== EDITAR + TRAZABILIDAD (solo Admin) ===================== */
+    var REGISTROS = { entrada: {}, salida: {}, gasto: {} };
+    var EDICION = null;
+    var NOMBRE_MODULO_ = { entrada: 'Compras', salida: 'Ventas', gasto: 'Gastos' };
+
+    function esc_(v) { return String(v === undefined || v === null ? '' : v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+    function aInputFecha_(v) {
+      var d = new Date(v);
+      if (isNaN(d)) return '';
+      var p = function (n) { return (n < 10 ? '0' : '') + n; };
+      return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+    }
+    function botonEditar_(tipo, id) {
+      if (!ESTADO.esAdmin) return '';
+      return '<button class="btn btn-sm btn-outline-primary" onclick="editarRegistroUI(\'' + tipo + '\',\'' + id + '\')">✏️</button>';
+    }
+    function abrirModal(id) { document.getElementById(id).classList.add('abierto'); }
+    function cerrarModal(id) { document.getElementById(id).classList.remove('abierto'); }
+    function campoEdit_(id, etiqueta, valor, tipo, extra) {
+      return '<div class="mb-2"><label>' + etiqueta + '</label><input type="' + (tipo || 'text') + '" id="ed_' + id + '" class="form-control" value="' + esc_(valor) + '" ' + (extra || '') + '></div>';
+    }
+
+    function editarRegistroUI(tipo, id) {
+      if (!ESTADO.esAdmin) return;
+      var r = REGISTROS[tipo][id];
+      if (!r) return;
+      EDICION = { tipo: tipo, id: id };
+      var h = '';
+      if (tipo === 'entrada') {
+        h += '<div class="text-muted mb-2" style="font-size:.85rem;">' + esc_(id) + ' · ' + esc_(r.Codigo) + ' · ' + esc_(r.Descripcion) + '</div>';
+        h += campoEdit_('fecha', 'Fecha', aInputFecha_(r.Fecha), 'date') + campoEdit_('factura', 'Proveedor / Factura', r.Factura) +
+             campoEdit_('cantidad', 'Cantidad', r.Cantidad, 'number', 'step="any"') + campoEdit_('precio', 'Precio unitario', r.PrecioUnitario, 'number', 'step="any"');
+      } else if (tipo === 'salida') {
+        h += '<div class="text-muted mb-2" style="font-size:.85rem;">' + esc_(id) + ' · ' + esc_(r.Codigo) + ' · ' + esc_(r.Descripcion) + '</div>';
+        var pagado = (r.MontoPagado === '' || r.MontoPagado === undefined) ? (Number(r.Cantidad) * Number(r.PrecioUnitario)) : r.MontoPagado;
+        h += campoEdit_('fecha', 'Fecha', aInputFecha_(r.Fecha), 'date') + campoEdit_('factura', 'N° Factura', r.Factura) + campoEdit_('cliente', 'Cliente', r.Cliente) +
+             campoEdit_('cantidad', 'Cantidad', r.Cantidad, 'number', 'step="any"') + campoEdit_('precio', 'Precio unitario', r.PrecioUnitario, 'number', 'step="any"') +
+             campoEdit_('montoPagado', 'Monto pagado', pagado, 'number', 'step="any"');
+      } else {
+        var opts = '';
+        var sel = document.getElementById('gastoCategoria');
+        var cats = sel ? Array.prototype.map.call(sel.options, function (o) { return o.value; }) : [];
+        if (cats.indexOf(r.Categoria) === -1) cats.unshift(r.Categoria);
+        cats.forEach(function (c) { opts += '<option value="' + esc_(c) + '"' + (c === r.Categoria ? ' selected' : '') + '>' + esc_(c) + '</option>'; });
+        h += '<div class="text-muted mb-2" style="font-size:.85rem;">' + esc_(id) + '</div>';
+        h += campoEdit_('fecha', 'Fecha', aInputFecha_(r.Fecha), 'date') + '<div class="mb-2"><label>Categoría</label><select id="ed_categoria" class="form-select">' + opts + '</select></div>' +
+             campoEdit_('concepto', 'Concepto', r.Concepto) + campoEdit_('valor', 'Valor', r.Valor, 'number', 'step="any"') + campoEdit_('observacion', 'Observación', r.Observacion);
+      }
+      h += '<div class="mb-1"><label>Motivo de la edición (obligatorio)</label><input type="text" id="ed_motivo" class="form-control" placeholder="Ej: error al digitar el precio"></div>';
+      h += '<small class="text-muted">El stock y la caja se corrigen solos y todo queda en el historial de cambios.</small>';
+      document.getElementById('editarTitulo').innerText = '✏️ Editar ' + NOMBRE_MODULO_[tipo].replace(/s$/, '').toLowerCase() + ' ' + id;
+      document.getElementById('editarCuerpo').innerHTML = h;
+      document.getElementById('editarHistorial').innerHTML = '';
+      abrirModal('modalEditar');
+      // Ediciones anteriores de este mismo registro
+      google.script.run.withSuccessHandler(function (filas) {
+        if (!EDICION || EDICION.id !== id || !filas.length) return;
+        var t = '<b>Ediciones anteriores:</b><ul class="mb-0 ps-3">';
+        filas.slice(0, 8).forEach(function (f) { t += '<li>' + esc_(f.Fecha) + ' · ' + esc_(f.Usuario) + ' · ' + esc_(f.Campo) + ': ' + esc_(f.Antes) + ' → ' + esc_(f.Despues) + ' (' + esc_(f.Motivo) + ')</li>'; });
+        document.getElementById('editarHistorial').innerHTML = t + '</ul>';
+      }).obtenerAuditoria({ modulo: NOMBRE_MODULO_[tipo], registroId: id }, ESTADO.token);
+    }
+
+    function guardarEdicionUI() {
+      if (!EDICION) return;
+      var g = function (k) { var el = document.getElementById('ed_' + k); return el ? el.value : undefined; };
+      var datos = { id: EDICION.id, motivo: g('motivo') };
+      ['fecha', 'factura', 'cliente', 'cantidad', 'precio', 'montoPagado', 'categoria', 'concepto', 'valor', 'observacion'].forEach(function (k) {
+        var v = g(k); if (v !== undefined) datos[k] = v;
+      });
+      if (!datos.motivo || !datos.motivo.trim()) { alert('Escribe el motivo de la edición.'); return; }
+      var tipo = EDICION.tipo;
+      var fn = tipo === 'entrada' ? 'editarEntrada' : (tipo === 'salida' ? 'editarSalida' : 'editarGasto');
+      var btn = document.getElementById('btnGuardarEdicion');
+      btn.disabled = true; btn.innerText = 'Guardando…';
+      var fin = function () { btn.disabled = false; btn.innerText = 'Guardar cambios'; };
+      google.script.run.withFailureHandler(function (e) { fin(); alert('⚠️ ' + (e && e.message ? e.message : e)); }).withSuccessHandler(function (res) {
+        fin();
+        cerrarModal('modalEditar');
+        alert(res.sinCambios ? 'No hubo cambios.' : '✅ Cambios guardados y registrados en el historial.');
+        cargarProductos();
+        if (tipo === 'gasto') cargarGastos(); else cargarMovimientos(tipo, paginaActual[tipo] || 1);
+      })[fn](datos, ESTADO.token);
+    }
+
+    function verAuditoriaUI(modulo) {
+      document.getElementById('auditTitulo').innerText = '📜 Historial de cambios - ' + modulo;
+      document.getElementById('tablaAuditoria').innerHTML = '<tr><td colspan="7">Cargando…</td></tr>';
+      abrirModal('modalAuditoria');
+      google.script.run.withFailureHandler(mostrarErrorSistema).withSuccessHandler(function (filas) {
+        var tb = document.getElementById('tablaAuditoria');
+        if (!filas.length) { tb.innerHTML = '<tr><td colspan="7" class="text-muted">Aún no hay ediciones.</td></tr>'; return; }
+        tb.innerHTML = filas.map(function (f) {
+          return '<tr><td>' + esc_(f.Fecha) + '</td><td>' + esc_(f.Usuario) + '</td><td>' + esc_(f.RegistroID) + '</td><td>' + esc_(f.Campo) + '</td><td>' + esc_(f.Antes) + '</td><td>' + esc_(f.Despues) + '</td><td>' + esc_(f.Motivo) + '</td></tr>';
+        }).join('');
+      }).obtenerAuditoria({ modulo: modulo }, ESTADO.token);
+    }
+
     var paginaActual = { entrada: 1, salida: 1 };
 
     function cargarMovimientos(tipo, pagina) {
@@ -876,9 +981,11 @@
         tbody.innerHTML = '';
         res.datos.forEach(function (m) {
           if (tipo === 'entrada') {
-            tbody.innerHTML += '<tr><td>' + m.ID + '</td><td>' + new Date(m.Fecha).toLocaleDateString() + '</td><td>' + (m.Factura || '') + '</td><td>' + m.Codigo + '</td><td>' + m.Descripcion + '</td><td>' + m.Cantidad + '</td><td>' + m.PrecioUnitario + '</td></tr>';
+            REGISTROS.entrada[m.ID] = m;
+            tbody.innerHTML += '<tr><td>' + m.ID + '</td><td>' + new Date(m.Fecha).toLocaleDateString() + '</td><td>' + (m.Factura || '') + '</td><td>' + m.Codigo + '</td><td>' + m.Descripcion + '</td><td>' + m.Cantidad + '</td><td>' + m.PrecioUnitario + '</td><td>' + botonEditar_('entrada', m.ID) + '</td></tr>';
           } else {
-            tbody.innerHTML += '<tr><td>' + m.ID + '</td><td>' + new Date(m.Fecha).toLocaleDateString() + '</td><td>' + m.Codigo + '</td><td>' + m.Descripcion + '</td><td>' + m.Cantidad + '</td><td>' + m.PrecioUnitario + '</td></tr>';
+            REGISTROS.salida[m.ID] = m;
+            tbody.innerHTML += '<tr><td>' + m.ID + '</td><td>' + new Date(m.Fecha).toLocaleDateString() + '</td><td>' + m.Codigo + '</td><td>' + m.Descripcion + '</td><td>' + m.Cantidad + '</td><td>' + m.PrecioUnitario + '</td><td>' + (m.MontoPagado === '' || m.MontoPagado === undefined ? '' : m.MontoPagado) + '</td><td>' + botonEditar_('salida', m.ID) + '</td></tr>';
           }
         });
         var totalPag = Math.ceil(res.total / res.tamPagina);
@@ -1379,7 +1486,8 @@
         var tbody = document.getElementById('tablaGastos');
         tbody.innerHTML = '';
         gastos.forEach(function (g) {
-          tbody.innerHTML += '<tr><td>' + new Date(g.Fecha).toLocaleDateString() + '</td><td>' + g.Categoria + '</td><td>' + g.Concepto + '</td><td>' + formatoMoneda(g.Valor) + '</td><td>' + g.Responsable + '</td></tr>';
+          REGISTROS.gasto[g.ID] = g;
+          tbody.innerHTML += '<tr><td>' + new Date(g.Fecha).toLocaleDateString() + '</td><td>' + g.Categoria + '</td><td>' + g.Concepto + '</td><td>' + formatoMoneda(g.Valor) + '</td><td>' + g.Responsable + '</td><td>' + botonEditar_('gasto', g.ID) + '</td></tr>';
         });
       }).obtenerGastos(ESTADO.token, null);
     }
@@ -1547,6 +1655,19 @@
     }
   </script>
 
+  <div id="modalEditar" class="ream-modal"><div class="caja">
+    <h6 id="editarTitulo">Editar</h6>
+    <div id="editarCuerpo"></div>
+    <div id="editarHistorial" class="mt-2" style="font-size:.78rem;"></div>
+    <div class="d-flex gap-2 mt-3">
+      <button class="btn btn-primary flex-fill" id="btnGuardarEdicion" onclick="guardarEdicionUI()">Guardar cambios</button>
+      <button class="btn btn-outline-secondary" onclick="cerrarModal('modalEditar')">Cancelar</button>
+    </div>
+  </div></div>
+  <div id="modalAuditoria" class="ream-modal"><div class="caja ancha">
+    <div class="d-flex justify-content-between align-items-center mb-2"><h6 id="auditTitulo" class="mb-0">Historial de cambios</h6><button class="btn btn-sm btn-outline-secondary" onclick="cerrarModal('modalAuditoria')">Cerrar</button></div>
+    <div style="overflow:auto;"><table class="table table-sm" style="font-size:.8rem;"><thead><tr><th>Fecha</th><th>Usuario</th><th>Registro</th><th>Campo</th><th>Antes</th><th>Después</th><th>Motivo</th></tr></thead><tbody id="tablaAuditoria"></tbody></table></div>
+  </div></div>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
